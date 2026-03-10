@@ -19,7 +19,7 @@ class MarketScanner:
 
         print(f"Найдено {len(pairs)} топ пар")
 
-        return pairs
+        return self.client.get_top_symbols(limit=20, min_volume=500000)
 
     def scan_market(self):
 
