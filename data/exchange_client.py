@@ -1,41 +1,44 @@
-# data/exchange_client.py
 import ccxt
-import os
-from dotenv import load_dotenv
 
-load_dotenv()
 
 class BybitClient:
-    def __init__(self, testnet=True):
-        api_key = os.getenv("BYBIT_API_KEY")
-        api_secret = os.getenv("BYBIT_SECRET")
+
+    def __init__(self):
+
+        # Публичное подключение без API
         self.exchange = ccxt.bybit({
-            'apiKey': api_key,
-            'secret': api_secret,
-            'enableRateLimit': True,
-            'options': {
-                'defaultType': 'future'
+            "enableRateLimit": True,
+            "options": {
+                "defaultType": "linear"
             }
         })
-        if testnet:
-            self.exchange.set_sandbox_mode(True)
 
-    def fetch_ohlcv(self, symbol, timeframe, limit=200):
-        """
-        Возвращает OHLCV для пары.
-        """
+    def get_top_symbols(self, limit=20):
+
         try:
-            return self.exchange.fetch_ohlcv(symbol, timeframe=timeframe, limit=limit)
+
+            tickers = self.exchange.fetch_tickers()
+
+            symbols = []
+
+            for symbol in tickers:
+
+                if "/USDT" in symbol and ":" not in symbol:
+                    volume = tickers[symbol]["quoteVolume"]
+
+                    if volume:
+                        symbols.append((symbol, volume))
+
+            symbols.sort(key=lambda x: x[1], reverse=True)
+
+            top_symbols = [s[0] for s in symbols[:limit]]
+
+            return top_symbols
+
         except Exception as e:
-            print(f"Error fetching OHLCV for {symbol}: {e}")
+            print("Error fetching tickers:", e)
             return []
 
-    def fetch_tickers(self):
-        """
-        Возвращает все тикеры (для сканера).
-        """
-        try:
-            return self.exchange.fetch_tickers()
-        except Exception as e:
-            print(f"Error fetching tickers: {e}")
-            return {}
+    def fetch_ohlcv(self, symbol, timeframe="15m", limit=200):
+
+        return self.exchange.fetch_ohlcv(symbol, timeframe, limit=limit)
