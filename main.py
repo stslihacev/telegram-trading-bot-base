@@ -1,16 +1,14 @@
-import asyncio
-from tg_bot.bot import run_telegram
-from core.engine import TradingEngine
-from database.db import init_db
-
-async def main():
-    init_db()
-    engine = TradingEngine()
-    # Запускаем обе корутины одновременно
-    await asyncio.gather(
-        run_telegram(),
-        engine.start()
-    )
+# main.py
+from strategy.bos_strategy_wrapper import BosStrategyRunner
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    runner = BosStrategyRunner()
+    
+    # пример анализа последней свечи по BTCUSDT
+    signal = runner.run("BTCUSDT", entry_tf="15m")
+    
+    if signal:
+        print("Сигнал найден:")
+        print(signal)
+    else:
+        print("Сигналов нет")
