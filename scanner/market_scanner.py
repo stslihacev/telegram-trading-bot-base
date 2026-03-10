@@ -1,4 +1,8 @@
 # scanner/market_scanner.py
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from data.exchange_client import BybitClient
 from data.market_data import MarketData
 from strategy.bos_strategy_wrapper import BosStrategyRunner
@@ -11,7 +15,6 @@ class MarketScanner:
     
     def get_top_pairs(self):
         tickers = self.client.fetch_tickers()
-        # сортируем по 24h объёму
         volume_dict = {symbol: tickers[symbol]['quoteVolume'] for symbol in tickers if 'USDT' in symbol}
         sorted_pairs = sorted(volume_dict.items(), key=lambda x: x[1], reverse=True)
         top_pairs = [pair for pair, _ in sorted_pairs[:TOP_PAIRS_LIMIT]]
@@ -24,7 +27,6 @@ class MarketScanner:
             signal = self.runner.run(symbol, entry_tf=entry_tf)
             if signal:
                 signals.append(signal)
-                # для начала выводим в консоль
                 print(f"Сигнал найден: {signal['side']} {symbol} | Entry: {signal['entry_price']:.2f} | TP: {signal['tp']:.2f} | SL: {signal['sl']:.2f}")
         return signals
 
