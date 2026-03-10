@@ -1,0 +1,11 @@
+# config/strategy_params.py
+
+BOS_LOOKBACK = 20
+
+SWING_WINDOW = 5
+
+RR_RATIO = 2.5
+
+ATR_MULTIPLIER = 1.5
+
+RSI_PERIOD = 14
