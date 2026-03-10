@@ -1,52 +1,28 @@
 import pandas as pd
-
+from backtest.backtest_engine import add_indicators, calculate_swings
 
 class MarketData:
 
     def __init__(self, client):
         self.client = client
 
-    def fetch_ohlcv(self, symbol, timeframe="15m", limit=200):
-
-        return self.client.fetch_ohlcv(symbol, timeframe, limit)
-
     @staticmethod
     def ohlcv_to_df(ohlcv):
-
         df = pd.DataFrame(
             ohlcv,
-            columns=[
-                "timestamp",
-                "open",
-                "high",
-                "low",
-                "close",
-                "volume"
-            ]
+            columns=["timestamp","open","high","low","close","volume"]
         )
 
         df["timestamp"] = pd.to_datetime(df["timestamp"], unit="ms")
+        df = df.set_index("timestamp")
 
         return df
 
-    @staticmethod
-    def add_indicators(df):
+    def get_dataframe(self, symbol, timeframe="1h", limit=500):
 
-        # простые индикаторы для начала
-        df["ema20"] = df["close"].ewm(span=20).mean()
-        df["ema50"] = df["close"].ewm(span=50).mean()
-
-        df["volume_ma"] = df["volume"].rolling(20).mean()
-
-        return df
-
-    def get_dataframe(self, symbol, timeframe="15m", limit=200):
-        ohlcv = self.fetch_ohlcv(symbol, timeframe, limit)
+        ohlcv = self.client.fetch_ohlcv(symbol, timeframe, limit)
         df = self.ohlcv_to_df(ohlcv)
 
-        # приводим типы к float
-        for col in ["open", "high", "low", "close", "volume"]:
-            df[col] = df[col].astype(float)
-
-        df = self.add_indicators(df)
+        df = add_indicators(df)      # те же индикаторы, что в backtest
+        df = calculate_swings(df)     # swing точки
         return df
